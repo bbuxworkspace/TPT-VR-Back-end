@@ -1,0 +1,15 @@
+{
+  "name": "tpt-vr-back-end",
+  "version": "1.0.0",
+  "description": "This API will handle communication between the Meta Quest 2 headset and the custom in-house software being developed for TPT.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
