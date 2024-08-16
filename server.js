@@ -8,13 +8,11 @@ const log = require('./utils/logger');
 
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-const errorMiddleware = require('./middleware/errorMiddleware'); // Adjust path if necessary
-
-// const tileRoutes = require('./routes/tileRoutes');
+const tileRoutes = require('./routes/tileRoutes');
 // const vrRoutes = require('./routes/vrRoutes');
 // const softwareRoutes = require('./routes/softwareRoutes');
 // const voiceoverRoutes = require('./routes/voiceoverRoutes');
-// const errorHandler = require('./middleware/errorMiddleware');
+const errorMiddleware = require('./middleware/errorMiddleware'); // Adjust path if necessary
 
 
 connectDB();
@@ -37,11 +35,11 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/tiles', tileRoutes);
 
 // Error handling middleware (should be the last middleware)
 app.use(errorMiddleware);
 
-// app.use('/api/v1/tiles', tileRoutes);
 // app.use('/api/v1/vr', vrRoutes);
 // app.use('/api/v1/software', softwareRoutes);
 // app.use('/api/v1/voiceovers', voiceoverRoutes);
