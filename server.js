@@ -3,10 +3,12 @@ const http = require('http');
 const socketIo = require('socket.io');
 require('dotenv').config();
 const connectDB = require('./config/db');
+const log = require('./utils/logger');
 
 
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const errorMiddleware = require('./middleware/errorMiddleware'); // Adjust path if necessary
 
 // const tileRoutes = require('./routes/tileRoutes');
 // const vrRoutes = require('./routes/vrRoutes');
@@ -36,36 +38,45 @@ app.get('/', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
+// Error handling middleware (should be the last middleware)
+app.use(errorMiddleware);
+
 // app.use('/api/v1/tiles', tileRoutes);
 // app.use('/api/v1/vr', vrRoutes);
 // app.use('/api/v1/software', softwareRoutes);
 // app.use('/api/v1/voiceovers', voiceoverRoutes);
 // app.use(errorHandler);
 
-const server = http.createServer(app);
-const io = socketIo(server);
+// const server = http.createServer(app);
+// const io = socketIo(server);
 
-io.on('connection', (socket) => {
-  console.log('A user connected');
+// io.on('connection', (socket) => {
+//   console.log('A user connected');
 
-  // socket.on('tileFavorited', (data) => {
-  //   socket.broadcast.emit('tileFavorited', data);
-  // });
+//   // socket.on('tileFavorited', (data) => {
+//   //   socket.broadcast.emit('tileFavorited', data);
+//   // });
 
-  // socket.on('tileUnfavorited', (data) => {
-  //   socket.broadcast.emit('tileUnfavorited', data);
-  // });
+//   // socket.on('tileUnfavorited', (data) => {
+//   //   socket.broadcast.emit('tileUnfavorited', data);
+//   // });
 
-  // socket.on('tileDetailsRequested', (data) => {
-  //   socket.broadcast.emit('tileDetailsRequested', data);
-  // });
+//   // socket.on('tileDetailsRequested', (data) => {
+//   //   socket.broadcast.emit('tileDetailsRequested', data);
+//   // });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-});
+//   socket.on('disconnect', () => {
+//     console.log('User disconnected');
+//   });
+// });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => { 
-  console.log(`Server is running on port ${PORT}`); 
+
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
+
+// In server.js
+log(`Server is running on port ${PORT}`);
+
+module.exports = app;  // Export app for testing

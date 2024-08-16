@@ -1,0 +1,10 @@
+module.exports = {
+    transform: {
+      '^.+\\.js$': 'babel-jest',
+    },
+    transformIgnorePatterns: [
+      'node_modules/(?!(chai|chai-http)/)'
+    ],
+    verbose: true,
+  };
+  

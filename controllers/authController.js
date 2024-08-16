@@ -14,7 +14,7 @@ exports.login = async (req, res) => {
 
   // If the user is not found, return an error
   if (!user) {
-    return res.status(401).json({ message: 'Invalid username or password' });
+    return res.status(400).json({ message: 'User not found' });
   }
 
   // Check if password matches
