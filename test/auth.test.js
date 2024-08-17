@@ -4,6 +4,7 @@ const chaiHttp = require('chai-http');
 const app = require('../server'); // Adjust path if necessary
 const User = require('../models/User'); // Adjust path if necessary
 const mongoose = require('mongoose');
+const generateToken = require('../utils/generateToken'); // Import generateToken utility
 
 const { expect } = chai;
 chai.use(chaiHttp);
@@ -20,6 +21,17 @@ describe('Auth Controller', () => {
 
     // Clear the database or set up a test database
     await User.deleteMany({});
+
+     // Create a user for testing logout
+     const user = await User.create({
+      username: 'testUser',
+      password: 'testPassword', // Ensure this is hashed in your actual code
+      role: 'user'
+  });
+
+  userId = user._id;
+  userToken = generateToken(user._id); // Use generateToken utility to create a token
+
   });
 
   after(async () => {
@@ -113,4 +125,25 @@ describe('Auth Controller', () => {
         done();
       });
   });
+
+  it('should logout a user', function(done) {
+    chai.request(app)
+        .post('/api/v1/auth/logout')
+        .set('Authorization', `Bearer ${userToken}`)
+        .end((err, res) => {
+            expect(res).to.have.status(200);
+            expect(res.body).to.have.property('message', 'Logged out successfully');
+            done();
+        });
+});
+
+it('should not allow logout without a token', function(done) {
+    chai.request(app)
+        .post('/api/v1/auth/logout')
+        .end((err, res) => {
+            expect(res).to.have.status(401);
+            expect(res.body).to.have.property('message', 'No token provided');
+            done();
+        });
+});
 });

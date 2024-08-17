@@ -62,3 +62,8 @@ exports.register = async (req, res) => {
     return res.status(400).json({ message: 'Invalid user data' });
   }
 };
+
+exports.logout = (req, res) => {
+  // Invalidate token on the client side
+  res.json({ message: 'Logged out successfully' });
+};

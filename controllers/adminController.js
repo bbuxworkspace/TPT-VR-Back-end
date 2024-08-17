@@ -40,3 +40,39 @@ exports.createAdmin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid user data' });
     }
   };
+
+// Admin Login
+exports.adminLogin = async (req, res) => {
+  const { username, password } = req.body;
+
+  // Check if username and password are provided
+  if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required' });
+  }
+
+  const user = await User.findOne({ username, role: 'admin' });
+
+  // If the user is not found or is not an admin, return an error
+  if (!user) {
+      return res.status(400).json({ message: 'Admin not found' });
+  }
+
+  // Check if password matches
+  const isMatch = await user.matchPassword(password);
+  if (isMatch) {
+      return res.json({
+          _id: user._id,
+          username: user.username,
+          role: user.role,
+          token: generateToken(user._id)  // Include token generation
+      });
+  } else {
+      return res.status(401).json({ message: 'Invalid username or password' });
+  }
+};
+
+// Admin Logout
+exports.adminLogout = (req, res) => {
+  // Invalidate token on the client side
+  res.json({ message: 'Admin logged out successfully' });
+};

@@ -4,11 +4,15 @@ const chaiHttp = require('chai-http');
 const app = require('../server'); // Adjust path if necessary
 const User = require('../models/User'); // Adjust path if necessary
 const mongoose = require('mongoose');
+const generateToken = require('../utils/generateToken'); // Import generateToken utility
 
 const { expect } = chai;
 chai.use(chaiHttp);
 
 describe('Admin Controller', () => {
+
+    let adminToken;
+    let adminId;
 
     before(async () => {
     // Check if already connected
@@ -18,6 +22,16 @@ describe('Admin Controller', () => {
 
 
         await User.deleteMany({});
+
+         // Create an admin user for testing login
+         const admin = await User.create({
+            username: 'adminUser',
+            password: 'adminPassword', // Ensure this is hashed in your actual code
+            role: 'admin'
+        });
+
+        adminId = admin._id;
+        adminToken = generateToken(admin._id);
     });
 
     after(async () => {
@@ -96,4 +110,56 @@ describe('Admin Controller', () => {
         done();
       });
   });
+
+  it('should login an admin and return a token', function(done) {
+    chai.request(app)
+        .post('/api/v1/admin/login')
+        .send({
+            username: 'adminUser',
+            password: 'adminPassword'
+        })
+        .end((err, res) => {
+            expect(res).to.have.status(200);
+            expect(res.body).to.have.property('token');
+            adminToken = res.body.token;
+            done();
+        });
+});
+
+it('should fail to login with incorrect password', function(done) {
+    chai.request(app)
+        .post('/api/v1/admin/login')
+        .send({
+            username: 'adminUser',
+            password: 'wrongPassword'
+        })
+        .end((err, res) => {
+            expect(res).to.have.status(401);
+            expect(res.body).to.have.property('message', 'Invalid username or password');
+            done();
+        });
+});
+
+it('should logout an admin', function(done) {
+    chai.request(app)
+        .post('/api/v1/admin/logout')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .end((err, res) => {
+            expect(res).to.have.status(200);
+            expect(res.body).to.have.property('message', 'Admin logged out successfully');
+            done();
+        });
+});
+
+it('should not allow logout without a token', function(done) {
+    chai.request(app)
+        .post('/api/v1/admin/logout')
+        .end((err, res) => {
+            expect(res).to.have.status(401);
+            expect(res.body).to.have.property('message', 'No token provided');
+            done();
+        });
+});
+
+
 });
