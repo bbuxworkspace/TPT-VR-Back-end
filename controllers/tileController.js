@@ -1,6 +1,29 @@
 const Tile = require('../models/Tile');
 const Favorite = require('../models/Favorite');
 const User = require('../models/User');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
+// Define storage for tile model files
+const storage = multer.diskStorage({
+    destination: function (req, file, callback) {
+        callback(null, 'uploads/tiles'); // Directory where tile files will be stored
+    },
+    filename: function (req, file, cb) {
+        const tileId = req.params.id; // Get the tile ID from the request parameters
+        const extension = path.extname(file.originalname); // Get the file extension
+        const filename = `${tileId}${extension}`; // Create a unique filename using tileId
+        cb(null, filename);
+    }
+});
+
+const upload = multer({ 
+    // dest: 'uploads/tiles/',
+    storage: storage, 
+    limits: {
+    fileSize: 30000000
+} });
 
 exports.getAllTiles = async (req, res) => {
   try {
@@ -124,3 +147,63 @@ exports.selectTile = async (req, res) => {
     }
   };
   
+
+
+// Upload a tile model file
+exports.uploadTileModel = [
+    upload.single('model'),
+    async (req, res) => {
+      try {
+        const tileId = req.params.id;
+        const tile = await Tile.findById(tileId);
+  
+        if (!tile) {
+          return res.status(404).json({ status: 404, message: 'Tile not found' });
+        }
+  
+        // Assign the uploaded file path to the modelFile field
+        tile.modelFile = req.file.path;
+        await tile.save();
+  
+        res.status(200).json({ message: 'Model file uploaded', modelFile: tile.modelFile });
+      } catch (error) {
+        res.status(500).json({ status: 500, message: 'Server error', error: error.message });
+      }
+    }
+  ];
+  
+  // Download a tile model file
+  exports.downloadTileModel = async (req, res) => {
+    try {
+      const tileId = req.params.id;
+      const tile = await Tile.findById(tileId);
+  
+      if (!tile || !tile.modelFile) {
+        return res.status(404).json({ status: 404, message: 'Tile or model file not found' });
+      }
+  
+      res.download(tile.modelFile);
+    } catch (error) {
+      res.status(500).json({ status: 500, message: 'Server error', error: error.message });
+    }
+  };
+  
+  // Delete a tile model file
+  exports.deleteTileModel = async (req, res) => {
+    try {
+      const tileId = req.params.id;
+      const tile = await Tile.findById(tileId);
+  
+      if (!tile || !tile.modelFile) {
+        return res.status(404).json({ status: 404, message: 'Tile or model file not found' });
+      }
+  
+      fs.unlinkSync(tile.modelFile); // Delete the file from the filesystem
+      tile.modelFile = null; // Remove the file path from the database
+      await tile.save();
+  
+      res.status(200).json({ message: 'Model file deleted' });
+    } catch (error) {
+      res.status(500).json({ status: 500, message: 'Server error', error: error.message });
+    }
+  };

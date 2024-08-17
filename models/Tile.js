@@ -19,6 +19,9 @@ const tileSchema = mongoose.Schema({
   imageUrl: {
     type: String,
     required: true
+  },
+  modelFile: {
+    type: String,
   }
 });
 

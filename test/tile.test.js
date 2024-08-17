@@ -6,6 +6,8 @@ const Favorite = require('../models/Favorite');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const mongoose = require('mongoose');
+const path = require('path');
+const mime = require('mime-types');
 const { expect } = chai;
 
 chai.use(chaiHttp);
@@ -14,13 +16,13 @@ describe('Tile Controller', function() {
   let token;
   let userId;
   let tileId;
-
+  const modelFilePath = path.join(__dirname, '../uploads/tiles/test.jpg'); // Path to test model file
 
   before(async function() {
     // Connect to the test database
     if (mongoose.connection.readyState === 0) { // 0 means disconnected
         await mongoose.connect(process.env.MONGO_URI_TEST);
-      }
+    }
 
     await Tile.deleteMany({});
     await User.deleteMany({});
@@ -96,6 +98,17 @@ describe('Tile Controller', function() {
       });
   });
 
+  it('should select a tile', function(done) {
+    chai.request(app)
+      .post(`/api/v1/tiles/${tileId}/select`)
+      .set('Authorization', `Bearer ${token}`)
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect(res.body).to.have.property('message', 'Tile selected successfully');
+        done();
+      });
+  });
+
   it('should update a tile', function(done) {
     chai.request(app)
       .put(`/api/v1/tiles/${tileId}`)
@@ -112,6 +125,47 @@ describe('Tile Controller', function() {
       });
   });
 
+  
+  // Test for uploading a tile model file
+  it('should upload a tile model file', function(done) {
+    chai.request(app)
+      .post(`/api/v1/tiles/${tileId}/upload-model`)
+      .set('Authorization', `Bearer ${token}`)
+      .attach('model', modelFilePath) // Adjust file path
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect(res.body).to.have.property('message', 'Model file uploaded');
+        expect(res.body).to.have.property('modelFile').that.includes(`${tileId}`);
+        done();
+      });
+  });
+
+  // Test for downloading a tile model file
+  it('should download a tile model file', function(done) {
+    chai.request(app)
+      .get(`/api/v1/tiles/${tileId}/download-model`)
+      .set('Authorization', `Bearer ${token}`)
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        const contentType = res.headers['content-type'];
+        expect(contentType).to.exist;
+        expect(mime.extension(contentType)).to.not.be.false;
+        done();
+      });
+  });
+
+  // Test for deleting a tile model file
+  it('should delete a tile model file', function(done) {
+    chai.request(app)
+      .delete(`/api/v1/tiles/${tileId}/delete-model`)
+      .set('Authorization', `Bearer ${token}`)
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect(res.body).to.have.property('message', 'Model file deleted');
+        done();
+      });
+  });
+
   it('should delete a tile', function(done) {
     chai.request(app)
       .delete(`/api/v1/tiles/${tileId}`)
@@ -119,17 +173,6 @@ describe('Tile Controller', function() {
       .end((err, res) => {
         expect(res).to.have.status(200);
         expect(res.body).to.have.property('message', 'Tile removed');
-        done();
-      });
-  });
-
-  it('should select a tile', function(done) {
-    chai.request(app)
-      .post(`/api/v1/tiles/${tileId}/select`)
-      .set('Authorization', `Bearer ${token}`)
-      .end((err, res) => {
-        // expect(res).to.have.status(200);
-        // expect(res.body).to.have.property('message', 'Tile selected successfully');
         done();
       });
   });
@@ -156,4 +199,5 @@ describe('Tile Controller', function() {
         done();
       });
   });
+
 });

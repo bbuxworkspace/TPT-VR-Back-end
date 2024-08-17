@@ -1,18 +1,20 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
 require('dotenv').config();
 const connectDB = require('./config/db');
 const log = require('./utils/logger');
-
+const bodyParser = require("body-parser");
+const cors = require('cors');
+const helmet = require('helmet');
 
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const tileRoutes = require('./routes/tileRoutes');
-// const vrRoutes = require('./routes/vrRoutes');
-// const softwareRoutes = require('./routes/softwareRoutes');
-// const voiceoverRoutes = require('./routes/voiceoverRoutes');
-const errorMiddleware = require('./middleware/errorMiddleware'); // Adjust path if necessary
+const roomRoutes = require('./routes/roomRoutes');
+const vrRoutes = require('./routes/vrRoutes');
+const softwareRoutes = require('./routes/softwareRoutes');
+const voiceoverRoutes = require('./routes/voiceoverRoutes');
+const testRoutes = require('./routes/testRoutes'); 
+const errorMiddleware = require('./middleware/errorMiddleware');
 
 
 connectDB();
@@ -21,52 +23,48 @@ connectDB();
 const app = express();
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  // res.status(201).send('Hello, welcome to the TPT VR System API!');
 
-  res.status(200).json({
-    status: 'success',
-    message: 'Hello, welcome to the TPT VR System API!',
-    timestamp: new Date().toISOString(),
-  });
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+})); // parse application/x-www-form-urlencoded
 
-  console.log("GET: /api/")
+
+// secure apps by setting various HTTP headers
+app.use(helmet());
+// enable CORS - Cross Origin Resource Sharing
+app.use(cors());
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    res.header("Access-Control-Allow-Methods", "PUT, POST, GET, OPTIONS, DELETE");
+    next();
 });
+
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/tiles', tileRoutes);
+app.use('/api/v1/rooms', roomRoutes);
+app.use('/api/v1/vr', vrRoutes);
+app.use('/api/v1/software', softwareRoutes);
+app.use('/api/v1/voiceover', voiceoverRoutes);
+app.use('/api/v1', testRoutes);
+
+app.get('/', (req, res) => {
+
+  res.status(200).json({
+    status: 'TPT 2024',
+    message: 'Hello, welcome to the TPT VR System API!',
+    timestamp: new Date().toISOString(),
+  });
+
+});
+
 
 // Error handling middleware (should be the last middleware)
 app.use(errorMiddleware);
-
-// app.use('/api/v1/vr', vrRoutes);
-// app.use('/api/v1/software', softwareRoutes);
-// app.use('/api/v1/voiceovers', voiceoverRoutes);
-// app.use(errorHandler);
-
-// const server = http.createServer(app);
-// const io = socketIo(server);
-
-// io.on('connection', (socket) => {
-//   console.log('A user connected');
-
-//   // socket.on('tileFavorited', (data) => {
-//   //   socket.broadcast.emit('tileFavorited', data);
-//   // });
-
-//   // socket.on('tileUnfavorited', (data) => {
-//   //   socket.broadcast.emit('tileUnfavorited', data);
-//   // });
-
-//   // socket.on('tileDetailsRequested', (data) => {
-//   //   socket.broadcast.emit('tileDetailsRequested', data);
-//   // });
-
-//   socket.on('disconnect', () => {
-//     console.log('User disconnected');
-//   });
-// });
 
 const PORT = process.env.PORT || 5000;
 

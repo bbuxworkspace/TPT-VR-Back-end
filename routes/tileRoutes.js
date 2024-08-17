@@ -7,7 +7,10 @@ const {
   updateTile,
   deleteTile,
   selectTile,
-  favoriteTile
+  favoriteTile,
+  uploadTileModel,
+  downloadTileModel,
+  deleteTileModel
 } = require('../controllers/tileController');
 const authMiddleware = require('../middleware/authMiddleware'); // Ensure this is in place
 
@@ -31,5 +34,14 @@ router.post('/:id/select', authMiddleware, selectTile);
 
 // Route to favorite a tile
 router.post('/:id/favorite', authMiddleware, favoriteTile);
+
+// Upload a tile model file
+router.post('/:id/upload-model', authMiddleware, uploadTileModel);
+
+// Download a tile model file
+router.get('/:id/download-model', authMiddleware, downloadTileModel);
+
+// Delete a tile model file
+router.delete('/:id/delete-model', authMiddleware, deleteTileModel);
 
 module.exports = router;

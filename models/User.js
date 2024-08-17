@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'user'],
     default: 'user'
   }
-}, { collection: 'vruserscollection', timestamps: true });
+}, { collection: 'users', timestamps: true });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
